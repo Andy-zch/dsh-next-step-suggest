@@ -1,0 +1,3 @@
+- insert:
+    - id: next-step-suggest
+      name: '@local/dsh-next-step-suggest'
