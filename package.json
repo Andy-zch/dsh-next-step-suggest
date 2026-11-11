@@ -1,9 +1,26 @@
 {
-  "name": "@local/dsh-next-step-suggest",
-  "version": "0.3.1",
-  "private": true,
+  "name": "dsh-next-step-suggest",
+  "version": "0.4.0",
   "type": "module",
   "description": "Ghost-text next-message suggestion for the DSH composer; Tab accepts without sending.",
+  "license": "MIT",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "ghost-text",
+    "autocomplete",
+    "composer",
+    "prompt-suggestion"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Andy-zch/dsh-next-step-suggest.git"
+  },
+  "homepage": "https://github.com/Andy-zch/dsh-next-step-suggest#readme",
+  "bugs": {
+    "url": "https://github.com/Andy-zch/dsh-next-step-suggest/issues"
+  },
   "exports": {
     ".": "./index.js",
     "./client": "./client.js",
@@ -16,7 +33,10 @@
     "cordis.patch.yml",
     "locale/*.json",
     "icon.svg",
-    "README.zh.md"
+    "README.md",
+    "README.zh.md",
+    "CHANGELOG.md",
+    "LICENSE"
   ],
   "dsh": {
     "bundle": { "patch": "./cordis.patch.yml" },
