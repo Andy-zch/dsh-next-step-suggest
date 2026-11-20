@@ -1,20 +1,15 @@
 /**
- * - [INPUT]: 依赖 connection 的 fetch 路由注册；依赖 sessions 的 get(sessionId) 取活会话；依赖 llm 的 stream(chunks) 做非 Agent 模型调用；可选依赖 sessionProjections 的 stateOf 读 todos；依赖 node:fs/promises 的 appendFile 写临时诊断；依赖 Web 的 Request/Response/AbortSignal
- * - [OUTPUT]: 注册 POST /api/next-step（建议）、/api/next-step/stats（度量）、/api/next-step/diag（临时诊断，0.3.2 移除）；另导出 __test 供离线单测
+ * - [INPUT]: 依赖 connection 的 fetch 路由注册；依赖 sessions 的 get(sessionId) 取活会话；依赖 llm 的 stream(chunks) 做非 Agent 模型调用；可选依赖 sessionProjections 的 stateOf 读 todos；依赖 Web 的 Request/Response/AbortSignal
+ * - [OUTPUT]: 注册 POST /api/next-step（建议）与 /api/next-step/stats（度量）；另导出 __test 供离线单测
  * - [POS]: next-step-suggest 的 Host 半边，是 client.js 唯一的预测来源。缓存按 (sessionId, seq)，同会话最近 3 条参与去重与提示词；失败一律静默
  * - [PROTOCOL]: 变更时更新此头部，然后检查 AGENTS.md
  */
-
-import { appendFile } from 'node:fs/promises'
 
 /* ── 常量 ────────────────────────────────────────────── */
 
 // 路由必须带 /api 前缀：connection 用 endpointFromPath('/api', path) 校验并精确匹配 url.pathname
 const ROUTE = '/api/next-step'
 const STATS_ROUTE = '/api/next-step/stats'
-// 临时诊断通道：把浏览器侧现场写到插件目录，供没有浏览器控制时定位。0.3.2 移除。
-const DIAG_ROUTE = '/api/next-step/diag'
-const DIAG_FILE = new URL('./diag.log', import.meta.url)
 const CACHE_TTL_MS = 5 * 60 * 1000
 // 最近 8 轮（用户+助手共 16 条）足够判断「下一句」，再多是浪费
 const HISTORY_LINES = 16
@@ -373,23 +368,6 @@ async function handleStats(request, state) {
   return reply({ stats })
 }
 
-/* ── 临时诊断：把浏览器侧的现场落成文件 ───────────────── */
-
-async function handleDiag(request) {
-  let body
-  try {
-    body = await request.json()
-  } catch {
-    return reply({ ok: false })
-  }
-  try {
-    await appendFile(DIAG_FILE, JSON.stringify({ at: Date.now(), ...body }) + '\n', 'utf8')
-  } catch {
-    /* 诊断写不进去不影响功能 */
-  }
-  return reply({ ok: true })
-}
-
 /* ── 路由 ────────────────────────────────────────────── */
 
 async function handle(request, app, state) {
@@ -525,14 +503,6 @@ export function apply(ctx, config) {
         methods: ['POST'],
         requestBody: 'buffered',
         fetch: (request) => handleStats(request, state),
-      }),
-    )
-    app.effect(() =>
-      app.connection.fetch.register({
-        path: DIAG_ROUTE,
-        methods: ['POST'],
-        requestBody: 'buffered',
-        fetch: (request) => handleDiag(request),
       }),
     )
     app.effect(() => () => {

@@ -2,10 +2,15 @@
 
 All notable changes to this plugin are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.4.1] — 2026-11-20
+
+### Removed
+- The temporary diagnostics channel shipped in 0.3.1: `POST /api/next-step/diag`, its client-side event reporting, and the `diag.log` writer. **The plugin no longer writes any file to disk.**
+- The `node:fs/promises` import that only served diagnostics.
 
 ### Added
 - `README.md` (English), `LICENSE` (MIT), this changelog.
+- The repository is public.
 
 ## [0.4.0] — 2026-11-11
 

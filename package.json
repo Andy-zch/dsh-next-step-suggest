@@ -1,6 +1,6 @@
 {
   "name": "dsh-next-step-suggest",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "type": "module",
   "description": "Ghost-text next-message suggestion for the DSH composer; Tab accepts without sending.",
   "license": "MIT",

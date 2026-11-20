@@ -14,8 +14,6 @@ window.__ModuleLoader__.load({
 
     const ROUTE = '/api/next-step'
     const STATS_ROUTE = '/api/next-step/stats'
-    // 临时诊断通道：把现场写到插件目录的 diag.log。0.3.2 移除。
-    const DIAG_ROUTE = '/api/next-step/diag'
     // 灰字根节点上的标记：CSS 钩子，也是「建议可见」的唯一真相
     const GHOST_ATTR = 'data-next-step-ghost'
     const PLACEHOLDER_SELECTOR = '[data-composer-placeholder]'
@@ -230,7 +228,6 @@ window.__ModuleLoader__.load({
                 ? data.suggestion.trim()
                 : null
           if (next === null && data?.reason) console.info('[next-step] no suggestion:', data.reason)
-          diagRef.current({ kind: 'response', reason: data?.reason ?? null, hasSuggestion: next !== null })
           if (next === null) return
 
           // 延迟浮现：到点再复核现场，用户已经在打字或换了会话就丢掉
@@ -247,7 +244,6 @@ window.__ModuleLoader__.load({
             setAccepted(false)
             setDismissed(false)
             reportRef.current('show')
-            diagRef.current({ kind: 'show', text: String(next).slice(0, 40) })
           }, SHOW_DELAY_MS)
         } catch (error) {
           if (error?.name !== 'AbortError' && sessionIdRef.current === owner) {
@@ -279,21 +275,6 @@ window.__ModuleLoader__.load({
       }, [])
       const reportRef = React.useRef(report)
       reportRef.current = report
-
-      /* 临时诊断：把现场落成文件，供没有浏览器控制时定位 */
-      const diag = React.useCallback((payload) => {
-        const owner = sessionIdRef.current
-        if (owner === undefined || owner === null) return
-        fetch(DIAG_ROUTE, {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          credentials: 'same-origin',
-          body: JSON.stringify({ sessionId: owner, ...payload }),
-          keepalive: true,
-        }).catch(() => {})
-      }, [])
-      const diagRef = React.useRef(diag)
-      diagRef.current = diag
 
       /* 换会话：中止在飞请求与待显示，清空一切跨会话状态与频率计数 */
       React.useEffect(() => {
@@ -331,10 +312,7 @@ window.__ModuleLoader__.load({
         const note = (reason) => {
           if (skipRef.current === reason) return
           skipRef.current = reason
-          if (reason !== null) {
-            console.info('[next-step] skip:', reason)
-            diagRef.current({ kind: 'skip', reason, draft: String(draft).slice(0, 40), running, phase })
-          }
+          if (reason !== null) console.info('[next-step] skip:', reason)
         }
 
         if (sessionId === undefined || sessionId === null) return note('no-session')
@@ -355,7 +333,6 @@ window.__ModuleLoader__.load({
 
         note(null)
         lastAttemptAtRef.current = now
-        diagRef.current({ kind: 'attempt' })
         turnTokenRef.current += 1
         const token = turnTokenRef.current
         const timer = setTimeout(() => requestRef.current(token), REQUEST_DEBOUNCE_MS)
@@ -416,11 +393,6 @@ window.__ModuleLoader__.load({
         window.addEventListener('keydown', onKeyDown, true)
         return () => window.removeEventListener('keydown', onKeyDown, true)
       }, [ready, text, inputActions, report])
-
-      /* 挂载即写一行诊断：确认组件真的渲染了 */
-      React.useEffect(() => {
-        diagRef.current({ kind: 'mount' })
-      }, [])
 
       /* 卸载时中止在飞请求与待显示 */
       React.useEffect(() => {

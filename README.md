@@ -58,6 +58,8 @@ All of these at once:
 
 It shows 1.2 s after the reply arrives, so you can read first.
 
+**Nothing showing?** The console prints `[next-step] skip: <reason>` once per reason change — `running`, `draft`, `hidden`, `showing`, `retry-gap`, `cooldown`, `session-cap`, or `muted` names the gate that blocked it.
+
 ## Configuration
 
 Per-row `config` in your profile's `cordis.patch.yml`:
